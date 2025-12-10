@@ -1,0 +1,25 @@
+{
+  "name": "Triton Lab (x86/uv)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "runArgs": ["--platform=linux/amd64"],
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": ".venv/bin/python"
+      },
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff"
+      ]
+    }
+  },
+
+  // FIXED: Point to /home/vscode/.local/bin where the installer actually puts uv
+  "postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && /home/vscode/.local/bin/uv sync",
+  
+  // FIXED: Add the correct path so you can just type 'uv' in the terminal later
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin"
+  }
+}

@@ -56,4 +56,4 @@ def benchmark_pytorch(dim=1024, seq_len=1024, batch_size=4, num_iters=100):
 
 if __name__ == "__main__":
     print("Benchmarking Reference PyTorch LayerNorm + AdaLN Implementation vs Triton...")
-    benchmark_pytorch()
+    benchmark_pytorch(dim=128, seq_len=186, batch_size=128)

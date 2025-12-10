@@ -10,6 +10,16 @@
 - **Einops:** Flexible tensor operations.
 - **Jaxtyping:** Type hints for tensors.
 
+### Target Optimization Configuration
+The project specifically targets optimization for the following hyperparameter configuration. Kernel optimizations (e.g., block sizes) should be tuned with these dimensions in mind:
+*   **Hidden State Dimension (`dim_base`)**: 128
+*   **Sequence Length**: 186
+*   **Feedforward Dimension (`dim_feedforward`)**: 512
+*   **Attention Heads (`num_attn_head`)**: 8
+*   **Transformer Layers**: 12
+*   **Conditioning**: True
+*   **Use Cross Attention**: True
+
 ## Building and Running
 
 ### Dependency Management

@@ -600,7 +600,6 @@ def precompute_freqs_cis(
     return freqs_cis
 
 
-@torch.compiler.disable(recursive=False)
 def apply_rotary_emb(
     xq: Float[Tensor, "batch * seq_len dim"],
     freqs_cis: Complex[Tensor, "seq_len dim//2"] | Complex[Tensor, "batch seq_len dim"],

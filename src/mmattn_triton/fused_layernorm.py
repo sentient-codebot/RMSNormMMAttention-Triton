@@ -6,9 +6,9 @@ import triton.language as tl
 
 @triton.autotune(
     configs=[
-        triton.Config({'BLOCK_SIZE': 128}, num_warps=2),
-        triton.Config({'BLOCK_SIZE': 128}, num_warps=4),
-        triton.Config({'BLOCK_SIZE': 128}, num_warps=8), # Unlikely
+        triton.Config({}, num_warps=2),
+        triton.Config({}, num_warps=4),
+        triton.Config({}, num_warps=8), # Unlikely
     ],
     key=['N'] # Re-benchmarking if N (dimension) changes
 )

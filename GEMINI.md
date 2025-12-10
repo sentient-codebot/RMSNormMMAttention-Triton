@@ -31,9 +31,22 @@ The project uses `uv_build` as the build backend.
     ```
 
 ### Testing
+This project uses `pytest` for unit and integration testing.
+
 *   **Run Tests:**
-    <!-- TODO: No explicit test commands or test directory found. -->
-    *(Check if tests are added in `tests/` or inline.)*
+    ```bash
+    uv run pytest
+    # To run specific tests, you can pass arguments to pytest:
+    # uv run pytest tests/your_test_file.py
+    ```
+
+### Running Scripts
+For running any Python script within the project's virtual environment, use `uv run`. This ensures that the script executes with all necessary dependencies properly loaded.
+
+*   **Example:**
+    ```bash
+    uv run python your_script_name.py
+    ```
 
 ## Development Conventions
 

@@ -11,6 +11,15 @@ from jaxtyping import Complex, Float, Int
 from torch import Tensor, nn
 
 
+try:
+    import triton  # noqa: F401
+
+    from .fused_layernorm import layernorm_adaln
+    HAS_TRITON = True
+except ImportError:
+    HAS_TRITON = False
+    layernorm_adaln = None
+
 T = TypeVar("T", bound=Any)
 
 
@@ -454,14 +463,22 @@ class GPT2Block(nn.Module):
 
         # copy + normalization
         x_copy = x.clone()
-        x = self.ln_1(x)
-        x = x * (1.0 + scale_attn) + shift_attn  # scale shift from adaLN
+        if self.conditioning and HAS_TRITON and x.is_cuda:
+            # Fused LayerNorm + AdaLN (only when conditioning is True)
+            x = layernorm_adaln(x, scale_attn, shift_attn)
+        else:
+            x = self.ln_1(x)
+            x = x * (1.0 + scale_attn) + shift_attn  # scale shift from adaLN (or 0 if not conditioning)
+            
         if self.use_cross_attn:
             context_copy = context.clone()
-            context = self.context_layers["ln_1"](context)
-            context = (
-                context * (1.0 + context_scale_attn) + context_shift_attn
-            )  # scale shift
+            if self.conditioning and HAS_TRITON and context.is_cuda:
+                 context = layernorm_adaln(context, context_scale_attn, context_shift_attn)
+            else:
+                context = self.context_layers["ln_1"](context)
+                context = (
+                    context * (1.0 + context_scale_attn) + context_shift_attn
+                )  # scale shift
 
         # attention
         if not self.use_cross_attn:
@@ -485,14 +502,22 @@ class GPT2Block(nn.Module):
 
         # mlp / feedforward
         x_copy = x.clone()
-        x = self.ln_2(x)
-        x = x * (1.0 + scale_mlp) + shift_mlp  # scale shift from adaLN
+        if self.conditioning and HAS_TRITON and x.is_cuda:
+             x = layernorm_adaln(x, scale_mlp, shift_mlp)
+        else:
+            x = self.ln_2(x)
+            x = x * (1.0 + scale_mlp) + shift_mlp  # scale shift from adaLN
+
         x = self.mlp(x)
         x = x_copy + x * gate_mlp  # residual connection
         if self.use_cross_attn:
             context_copy = context.clone()
-            context = self.context_layers["ln_2"](context)
-            context = context * (1.0 + context_scale_mlp) + context_shift_mlp
+            if self.conditioning and HAS_TRITON and context.is_cuda:
+                 context = layernorm_adaln(context, context_scale_mlp, context_shift_mlp)
+            else:
+                context = self.context_layers["ln_2"](context)
+                context = context * (1.0 + context_scale_mlp) + context_shift_mlp
+            
             context = self.context_layers["mlp"](context)
             context = context_copy + context * context_gate_mlp  # residual
             return AttentionOutput(x, context)  # (b, seq, c), (b, seq2, c)

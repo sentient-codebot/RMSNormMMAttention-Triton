@@ -127,7 +127,8 @@ class ExampleFusedAdaLN(nn.Module):
 ### Task Breakdown
 Avoid attempting large, monolithic tasks in a single step. Instead, break down complex objectives into smaller, verifiable subtasks.
 
-**Example: Implementing a new Triton Kernel**
+### Methodology for Triton Kernel Implementation
+When implementing a new Triton kernel to optimize an operation (which is a core goal of this project), follow these best practices for each individual kernel:
 1.  **Benchmark Baseline:** Create a script to reproduce and measure the performance of the existing PyTorch implementation.
 2.  **Implement Kernel:** Write the raw Triton kernel logic.
 3.  **Unit Test & Verify:** Create a targeted test to verify the kernel's output matches the PyTorch baseline (correctness is paramount).

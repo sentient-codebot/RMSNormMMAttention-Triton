@@ -19,11 +19,22 @@ def _layernorm_adaln_fwd_kernel(
     eps,
     BLOCK_SIZE: tl.constexpr
 ):
+    """Fused LayerNorm + AdaLN modulation forward kernel.
+
+    x: (Batch, Seq, Dim)
+    scale: (Batch, 1, Dim)
+    shift: (Batch, 1, Dim)
+    y: (Batch, Seq, Dim)
+
+    Process:
+        - the grid is designed to be (Batch * Seq,)
+    
+    """
     pid = tl.program_id(0)
     
     # Map pid to batch and seq index
-    batch_idx = pid // seq_len
-    seq_idx = pid % seq_len
+    batch_idx = pid // seq_len  # Which sequence are we in
+    seq_idx = pid % seq_len  # Which token in the sequence
     
     # Calculate pointers
     x_row_ptr = x_ptr + batch_idx * stride_x_batch + seq_idx * stride_x_seq
@@ -35,8 +46,9 @@ def _layernorm_adaln_fwd_kernel(
     # Load data
     cols = tl.arange(0, BLOCK_SIZE)
     mask = cols < N
-    
-    x_offset = cols * stride_x_dim
+
+    # stride in feature dimension, should be 1 for row-major
+    x_offset = cols * stride_x_dim  
     x = tl.load(x_row_ptr + x_offset, mask=mask, other=0.0).to(tl.float32)
     
     # Load scale and shift

@@ -4,6 +4,14 @@ import triton
 import triton.language as tl
 
 
+@triton.autotune(
+    configs=[
+        triton.Config({'BLOCK_SIZE': 128}, num_warps=2),
+        triton.Config({'BLOCK_SIZE': 128}, num_warps=4),
+        triton.Config({'BLOCK_SIZE': 128}, num_warps=8), # Unlikely
+    ],
+    key=['N'] # Re-benchmarking if N (dimension) changes
+)
 @triton.jit
 def _layernorm_adaln_fwd_kernel(
     x_ptr,
